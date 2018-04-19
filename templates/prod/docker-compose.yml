@@ -1,0 +1,64 @@
+version: '2'
+services:
+    rabbit:
+        image: rancher/dns-service
+        external_links:
+            - Brokers/rabbit:rabbit
+    redis:
+        image: redis:alpine
+        stdin_open: true
+        tty: true
+        labels:
+            production: true
+
+    db:
+        image: mysql
+        volumes:
+            - "/data/${SERVICE_NAME}.${SERVICE_DOMAIN}/${MYSQL_DATABASE}/db:/var/lib/mysql"
+        environment:
+            MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+            MYSQL_DATABASE: "${MYSQL_DATABASE}"
+            MYSQL_USER: "${MYSQL_USER}"
+            MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
+        labels:
+            io.rancher.container.pull_image: always
+            database: true
+
+    php:
+        image: $DOCKERHUB_NAME/$SERVICE_NAME.$SERVICE_DOMAIN:$TAG
+        labels:
+            io.rancher.container.pull_image: always
+            io.rancher.scheduler.affinity:container_label_soft_ne: io.rancher.stack_service.name=$${stack_name}/$${service_name}
+            production: true
+        environment:
+            MYSQL_HOST: "${MYSQL_HOST}"
+            MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+            MYSQL_DATABASE: "${MYSQL_DATABASE}"
+            MYSQL_USER: "${MYSQL_USER}"
+            MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
+            REDIS_HOST: "${REDIS_HOST}"
+            ContainerType: "service"
+            DEBUG: "${DEBUG}"
+            ENV: "${ENV}"
+            SERVICE_NAMESPACE: "${SERVICE_NAMESPACE}"
+            SERVICE_MESSAGE: "${SERVICE_MESSAGE}"
+        volumes:
+            - "avatar:/var/www/cabinet.socialmedia.market/web/avatar"
+            - "extra_config:/var/www/cabinet.socialmedia.market/app/extra_config"
+
+    nginx:
+        image: resumegames/nginx.cabinet.socialmedia.market:latest
+        labels:
+            traefik.port: 80
+            traefik.frontend.rule: "Host:${FDQN_BACKEND}"
+            io.rancher.container.pull_image: always
+            io.rancher.scheduler.affinity:container_label_soft_ne: io.rancher.stack_service.name=$${stack_name}/$${service_name}
+            production: true
+        volumes:
+            - "avatar:/var/www/cabinet.socialmedia.market/web/avatar"
+
+volumes:
+    avatar:
+        driver: "rancher-nfs"
+    extra_config:
+        driver: "rancher-nfs"

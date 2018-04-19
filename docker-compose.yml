@@ -1,0 +1,38 @@
+version: '2'
+services:
+    db:
+        image: mysql
+        volumes:
+            - "./.data/db:/var/lib/mysql"
+        environment:
+            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+            MYSQL_DATABASE: ${MYSQL_DATABASE}
+            MYSQL_USER: ${MYSQL_USER}
+            MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    php:
+        build: service
+        environment:
+            DEBUG: "true"
+            PROTOCOL: ${PROTOCOL}
+            SERVICE_NAME: ${SERVICE_NAME}
+            SERVICE_DOMAIN: ${SERVICE_DOMAIN}
+        volumes:
+            - ./service:/var/www:Z
+            - ./.logs/${SERVICE_NAME}.${SERVICE_DOMAIN}:/var/www/var/logs
+#    nginx:
+#        image: garlic/nginx
+#        ports:
+#            - 127.0.0.21:8021:80
+#        volumes:
+#            - ./.logs/nginx/:/var/log/nginx
+    nginx:
+        build: nginx
+        ports:
+            - 127.0.0.12:8021:80
+        volumes:
+            - ./.logs/nginx/:/var/log/nginx
+            - ./service/public/avatar:/var/www/public/avatar
+    redis:
+        image: redis:alpine
+        volumes:
+            - "./.redis/redis-data:/bitnami/redis"

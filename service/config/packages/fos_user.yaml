@@ -1,0 +1,23 @@
+parameters:
+    fos_user.resetting.token_ttl: 86400
+
+fos_user:
+    db_driver: orm # other valid values are 'mongodb' and 'couchdb'
+    firewall_name: main
+    user_class: App\Entity\User
+    from_email:
+        address: "%env(MAILER_USER)%"
+        sender_name: "%env(MAILER_USER)%"
+    service:
+        mailer: App\Service\MailerService
+    profile:
+        form:
+            type: App\Form\Type\ProfileFormType
+            validation_groups: [ServiceProfile]
+    registration:
+        form:
+            type: App\Form\Type\RegistrationFormType
+            validation_groups: [ServiceRegistration]
+        confirmation:
+            enabled: true
+    use_username_form_type: false

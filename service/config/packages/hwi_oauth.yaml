@@ -1,0 +1,46 @@
+hwi_oauth:
+    connect:
+        confirmation: false
+        account_connector: hwi_oauth.user.provider.entity
+    firewall_names: [secured_area]
+    fosub:
+        username_iterations: 30
+        properties:
+            facebook:  facebook_id
+            google:    google_id
+            youtube:   youtube_id
+            instagram: instagram_id
+    resource_owners:
+        facebook:
+            type:          facebook
+            client_id:     '%env(FACEBOOK_CLIENT_ID)%'
+            client_secret: '%env(FACEBOOK_CLIENT_SECRET)%'
+            scope:         'public_profile,email'
+            user_response_class: App\Response\PathUserResponse
+            infos_url:     'https://graph.facebook.com/me?fields=id,name,email,first_name,last_name,gender,picture.type(normal)'
+            paths:
+                email: email
+                website: website
+                gender: gender
+                profilepicture: picture.data.url
+        google:
+            type:           google
+            client_id:      '%env(GOOGLE_CLIENT_ID)%'
+            client_secret:  '%env(GOOGLE_CLIENT_SECRET)%'
+            scope:          'email profile'
+            user_response_class: App\Response\PathUserResponse
+            paths:
+                gender: gender
+                website: website
+        youtube:
+            type:           youtube
+            client_id:      '%env(GOOGLE_CLIENT_ID)%'
+            client_secret:  '%env(GOOGLE_CLIENT_SECRET)%'
+            scope:          'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/plus.login https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/yt-analytics-monetary.readonly https://www.googleapis.com/auth/yt-analytics.readonly'
+            infos_url:      'https://www.googleapis.com/youtube/v3/channels?part=id,snippet,contentDetails,statistics,brandingSettings,contentOwnerDetails,localizations,status,topicDetails&mine=true'
+            options:
+                access_type: offline
+        instagram:
+            type:           instagram
+            client_id:      '%env(INSTAGRAM_CLIENT_ID)%'
+            client_secret:  '%env(INSTAGRAM_CLIENT_SECRET)%'

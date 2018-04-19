@@ -1,0 +1,16 @@
+parameters:
+    locale: en
+    register.confirmation.resent_email.timeout: 1800 #30 min
+    hwi_oauth.resource_owner.youtube.class: App\OAuth\ResourceOwner\YoutubeResourceOwner
+
+framework:
+    secret: '%env(APP_SECRET)%'
+    session: ~
+    translator: ~
+    form:
+        csrf_protection:
+            enabled:        false
+    validation:
+        enable_annotations: true
+    php_errors:
+        log: true

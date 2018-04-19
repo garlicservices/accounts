@@ -1,0 +1,78 @@
+version: '2'
+services:
+    rabbit:
+        image: rancher/dns-service
+        external_links:
+            - Brokers/rabbit:rabbit
+    redis:
+        image: redis:alpine
+        stdin_open: true
+        tty: true
+        labels:
+            development: true
+
+    db:
+        image: mysql:5.7.20
+        environment:
+            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+            MYSQL_DATABASE: ${MYSQL_DATABASE}
+            MYSQL_USER: ${MYSQL_USER}
+            MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+        labels:
+            io.rancher.container.pull_image: always
+            development: true
+
+    php:
+        image: $DOCKERHUB_NAME/$SERVICE_NAME.$SERVICE_DOMAIN:$TAG
+        labels:
+            io.rancher.container.pull_image: always
+            io.rancher.scheduler.affinity:host_label_ne: lb=true
+            io.rancher.scheduler.affinity:container_label_soft_ne: io.rancher.stack_service.name=$${stack_name}/$${service_name}
+            development: true
+        environment:
+            MYSQL_HOST: "${MYSQL_HOST}"
+            MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+            MYSQL_DATABASE: "${MYSQL_DATABASE}"
+            MYSQL_USER: "${MYSQL_USER}"
+            MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
+            REDIS_HOST: "${REDIS_HOST}"
+            ContainerType: "service"
+            DEBUG: "${DEBUG}"
+            ENV: "${ENV}"
+            SERVICE_NAMESPACE: "${SERVICE_NAMESPACE}"
+            FACEBOOK_CLIENT_ID: 628334024222205
+            FACEBOOK_CLIENT_SECRET: e9d064111ff56a2a4ff5c4c7fda59033
+            GOOGLE_CLIENT_ID: 693687410429-b5mn69v684ff5f4a5tip70p6u6p97qqi.apps.googleusercontent.com
+            GOOGLE_CLIENT_SECRET: t2A6eBhJk2CiCcI47zVmKcQu
+            INSTAGRAM_CLIENT_ID: fd56845a5e8b412db605890a6b45189b
+            INSTAGRAM_CLIENT_SECRET: 12f75252356042f5b2a92c5cb3631814
+            PROTOCOL: http
+        volumes:
+            - "avatar:/var/www/cabinet.socialmedia.market/web/avatar"
+            - "extra_config:/var/www/cabinet.socialmedia.market/app/extra_config"
+
+    nginx:
+        image: resumegames/nginx.cabinet.socialmedia.market:latest
+        environment:
+            ENV: "${ENV}"
+        labels:
+            traefik.port: 80
+            traefik.frontend.rule: "Host:${FDQN_BACKEND}"
+            io.rancher.container.pull_image: always
+            io.rancher.scheduler.affinity:host_label_ne: lb=true
+            io.rancher.scheduler.affinity:container_label_soft_ne: io.rancher.stack_service.name=$${stack_name}/$${service_name}
+            development: true
+        volumes:
+            - "nginx_logs:/var/log/nginx"
+            - "avatar:/var/www/cabinet.socialmedia.market/web/avatar"
+        links:
+            - php
+        depends_on:
+            - php:service_healthy
+
+volumes:
+    nginx_logs:
+    avatar:
+        driver: "rancher-nfs"
+    extra_config:
+        driver: "rancher-nfs"

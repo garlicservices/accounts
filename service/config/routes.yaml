@@ -1,0 +1,58 @@
+app:
+    resource: "Controller/"
+    type:     annotation
+
+registration:
+    resource: "@GarlicUserBundle/Controller/RegistrationController.php"
+    type:     annotation
+
+user:
+    resource: "@GarlicUserBundle/Controller/UserController.php"
+    type:     annotation
+
+resetting:
+    resource: "@GarlicUserBundle/Controller/ResettingController.php"
+    type:     annotation
+
+two_factor:
+    resource: "@GarlicUserBundle/Controller/TwoFactorController.php"
+    type:     annotation
+
+avatar:
+    resource: "@GarlicUserBundle/Controller/AvatarController.php"
+    type:     annotation
+
+jwt:
+    resource: "@GarlicUserBundle/Controller/JwtController.php"
+    type:     annotation
+
+social_connect:
+    resource: "@GarlicUserBundle/Controller/SocialConnectController.php"
+    type:     annotation
+
+app.swagger:
+    path: /api/doc.json
+    methods: GET
+    defaults: { _controller: nelmio_api_doc.controller.swagger }
+
+hwi_oauth_redirect:
+    resource: "@HWIOAuthBundle/Resources/config/routing/redirect.xml"
+    prefix:   /social/connect
+
+login_check:
+    path: /login_check
+
+facebook_login:
+    path: /social/login_facebook
+
+google_login:
+    path: /social/login_google
+
+fos_user_registration_check_email:
+    path: /register/check-email
+    defaults:
+        _controller: FOSUserBundle:Registration:checkEmail
+
+fos_user_resetting:
+    resource: "@FOSUserBundle/Resources/config/routing/resetting.xml"
+    prefix: /resetting

@@ -1,0 +1,49 @@
+parameters:
+    scheb_two_factor.security.check_path: two_factor_login
+
+services:
+
+    scheb_two_factor.security.google.provider:
+        class: Garlic\User\Security\TwoFactorProvider
+        arguments:
+          - '@scheb_two_factor.security.google.code_validator'
+          - '%scheb_two_factor.parameter_names.auth_code%'
+        tags:
+          - { name: 'scheb_two_factor.provider', alias: 'google'}
+
+    scheb_two_factor.trusted_filter:
+        class: Garlic\User\Security\TrustedFilter
+        arguments:
+            - '@scheb_two_factor.provider_registry'
+            - '@scheb_two_factor.trusted_cookie_manager'
+            - '%scheb_two_factor.trusted_computer.enabled%'
+            - '%scheb_two_factor.parameter_names.trusted%'
+
+    scheb_two_factor.security.google.renderer:
+        synthetic: true
+
+scheb_two_factor:
+
+    trusted_computer:
+        enabled: true
+        cookie_name: two_factor_trusted_computer
+        cookie_lifetime: 5184000 # 60 days
+
+    # Google Authenticator config
+    google:
+        enabled: true                    # If Google Authenticator should be enabled, default false
+        server_name: ScialMedia.Market   # Server name used in QR code
+        issuer: Sequrity                 # Issuer name used in QR code
+        template: ~                      # Template used to render the authentication form
+
+    security_tokens:
+        - Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken
+        - Lexik\Bundle\JWTAuthenticationBundle\Security\Authentication\Token\JWTUserToken
+
+    model_manager_name: ~
+
+    persister: scheb_two_factor.persister.doctrine
+
+    parameter_names:
+        auth_code: _auth_code          # Name of the parameter containing the authentication code
+        trusted: _trusted              # Name of the parameter containing the trusted flag

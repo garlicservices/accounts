@@ -1,0 +1,80 @@
+parameters:
+    locale: 'en'
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
+
+    App\:
+        resource: '../src/*'
+        exclude: '../src/{Entity,Migrations,Tests}'
+
+    App\Controller\:
+        resource: '../src/Controller'
+        tags: ['controller.service_arguments']
+
+    Predis\ClientInterface: '@snc_redis.default'
+    Garlic\User\Service\MailerTransportInterface: '@App\Service\MailerTransport'
+
+    service.event_listener.json_request_transformer:
+        class: Qandidate\Common\Symfony\HttpKernel\EventListener\JsonRequestTransformerListener
+        tags:
+            - { name: kernel.event_listener, event: kernel.request, method: onKernelRequest, priority: 100 }
+
+    base.exception_subscriber:
+        class: App\EventSubscriber\ExceptionSubscriber
+        tags:
+            - { name: kernel.event_subscriber,  priority: -255 }
+
+    App\Service\MailerTransport:
+        arguments:
+            - '@communicator'
+            - '%env(MAILER_FROM_EMAIL)%'
+            - '%env(SERVICE_NAME)%'
+
+    App\EventSubscriber\UserEventLoggerSubscriber:
+        tags:
+            - { name: kernel.event_subscriber }
+
+    App\EventSubscriber\TwoFactorSubscriber:
+        arguments:
+            - '@App\Service\MailerService'
+        tags:
+            - { name: kernel.event_subscriber }
+
+    App\EventListener\LocaleListener:
+        tags:
+            - { name: kernel.event_listener, event: kernel.request, method: onKernelRequest, priority: -100 }
+
+    service.profile.form.type:
+        class: App\Form\Type\ProfileFormType
+        arguments:
+            - '%fos_user.model.user.class%'
+        tags:
+            - { name: form.type, alias: fos_user_profile }
+
+    service.registration.form.type:
+        class: App\Form\Type\RegistrationFormType
+        arguments:
+            - '%fos_user.model.user.class%'
+        tags:
+            - { name: form.type, alias: fos_user_registration }
+
+    hwi_oauth.resource_ownermap.secured_area:
+        alias: HWI\Bundle\OAuthBundle\Security\Http\ResourceOwnerMap
+        public: true
+
+    hwi_oauth.user.provider.entity:
+        class: App\Security\FOSUBUserProvider
+        arguments:
+            - '@fos_user.user_manager'
+            - {'facebook': 'facebookId', 'google': 'googleId'}
+
+    service.event.jwt_created_listener:
+        class: App\EventListener\JWTCreatedListener
+        arguments:
+            - '@request_stack'
+        tags:
+            - { name: kernel.event_listener, event: lexik_jwt_authentication.on_jwt_created, method: onJWTCreated }
